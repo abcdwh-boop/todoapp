@@ -1,7 +1,7 @@
 {
-  "name": "TodoMemo - 교사용 투두리스트 메모장",
+  "name": "나의 완벽한 하루를 위한 MEMO",
   "short_name": "TodoMemo",
-  "description": "교사를 위한 스타벅스 감성의 모바일 투두리스트 메모장",
+  "description": "모바일 투두리스트 메모장",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
