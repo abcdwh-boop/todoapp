@@ -230,6 +230,7 @@ function renderTasks() {
     dragHandle.className = 'drag-handle material-symbols-outlined';
     dragHandle.textContent = 'drag_indicator';
     dragHandle.title = '드래그하여 순서 변경';
+    dragHandle.draggable = false;
     attachDragReorder(dragHandle, li);
 
     mainRow.appendChild(dragHandle);
@@ -317,6 +318,10 @@ function renderTasks() {
 
 // ---------- 드래그 순서 변경 (Pointer Events: 마우스+터치 공용) ----------
 function attachDragReorder(handle, li) {
+  // 아이콘 폰트 글자를 브라우저가 네이티브 텍스트/이미지 드래그로 오인해
+  // pointermove 이벤트 자체가 끊기는 것을 방지
+  handle.addEventListener('dragstart', (e) => e.preventDefault());
+
   handle.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     handle.setPointerCapture(e.pointerId);
@@ -332,10 +337,16 @@ function attachDragReorder(handle, li) {
       }
     };
 
-    const onUp = () => {
+    const cleanup = () => {
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
       handle.removeEventListener('pointercancel', onUp);
+      window.removeEventListener('pointerup', windowFallback);
+      window.removeEventListener('pointercancel', windowFallback);
+    };
+
+    const onUp = () => {
+      cleanup();
       li.classList.remove('dragging');
       document.body.classList.remove('dragging-active');
       const taskIdOrderArray = Array.from(todoList.querySelectorAll('.todo-item')).map(el => el.dataset.id);
@@ -343,9 +354,14 @@ function attachDragReorder(handle, li) {
       refreshAfterDataChange();
     };
 
+    // 캡처가 예기치 않게 풀려 handle 쪽 pointerup이 안 잡히는 경우를 대비한 안전망
+    const windowFallback = () => onUp();
+
     handle.addEventListener('pointermove', onMove);
     handle.addEventListener('pointerup', onUp);
     handle.addEventListener('pointercancel', onUp);
+    window.addEventListener('pointerup', windowFallback);
+    window.addEventListener('pointercancel', windowFallback);
   });
 }
 

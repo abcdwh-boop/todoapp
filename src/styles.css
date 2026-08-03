@@ -273,6 +273,14 @@ body.dark-theme .current-date-display, body:not(.light-theme) .current-date-disp
   gap: 6px;
   box-shadow: var(--shadow);
   transition: var(--transition);
+  position: relative;
+  z-index: 1;
+}
+
+/* flex item은 position 유무와 관계없이 포지션 요소처럼 그려지므로,
+   메뉴가 열린 항목을 형제 항목(특히 아래쪽 메모창)보다 위로 끌어올림 */
+.todo-item:has(.todo-menu-popup.open) {
+  z-index: 50;
 }
 
 .todo-item:hover {
@@ -853,6 +861,10 @@ body {
   cursor: grab;
   color: var(--text-muted);
   opacity: 0.4;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 /* 전체화면 뷰 (큰 달력 / 설정) */
