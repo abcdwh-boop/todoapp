@@ -1,4 +1,4 @@
-const CACHE_NAME = 'todomemo-v5';
+const CACHE_NAME = 'todomemo-v7';
 const FONT_CACHE = 'todomemo-fonts-v1';
 
 const ASSETS = [

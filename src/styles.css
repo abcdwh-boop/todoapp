@@ -996,7 +996,10 @@ body:not(.light-theme) .current-month-display {
   flex-direction: column;
   gap: 2px;
   transition: var(--transition);
-  min-height: 64px;
+  /* 고정 최소높이를 두지 않고 grid의 1fr 행 분배에 맡겨,
+     화면 높이가 작은 모바일에서도 6주치가 한 화면에 균일하게 들어오도록 함.
+     행 안에 다 못 들어가는 내용은 위 overflow:hidden으로 잘라냄(그리드 행 크기는 그대로 유지). */
+  min-height: 0;
 }
 
 .day-cell:hover {
@@ -1340,6 +1343,23 @@ body:not(.light-theme) .document-body h2 {
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* 화면 세로가 작은 기기(구형 폰, 가로모드 등)에서 셀 내부 요소를 더 촘촘하게 */
+@media (max-height: 700px) {
+  .day-number {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+  .cell-todo-item {
+    font-size: 0.62rem;
+    line-height: 1.2;
+  }
+  .day-cell {
+    padding: 3px;
+    gap: 1px;
+  }
 }
 
 /* 드래그 중 스크롤 방지 보조 */
