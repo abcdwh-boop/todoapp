@@ -321,50 +321,48 @@ function renderTasks() {
 
 // ---------- 드래그 순서 변경 (Pointer Events: 마우스+터치 공용) ----------
 function attachDragReorder(handle, li) {
-  // 아이콘 폰트 글자를 브라우저가 네이티브 텍스트/이미지 드래그로 오인해
-  // pointermove 이벤트 자체가 끊기는 것을 방지
+  // 아이콘 폰트 글자가 브라우저 기본 드래그로 오인되는 것을 방지
   handle.addEventListener('dragstart', (e) => e.preventDefault());
 
   handle.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
+
+    // setPointerCapture를 핸들에 걸면, 순서 변경으로 li가 DOM에서 이동(제거 후
+    // 재삽입)되는 순간 캡처가 자동 해제되어 두 번째 움직임부터 드래그가 끊긴다.
+    // 따라서 캡처를 쓰지 않고 document에서 포인터를 추적한다.
+    const pointerId = e.pointerId;
     li.classList.add('dragging');
     document.body.classList.add('dragging-active');
 
     const onMove = (ev) => {
+      if (ev.pointerId !== pointerId) return;
+      if (ev.cancelable) ev.preventDefault();
       const afterElement = getDragAfterElement(todoList, ev.clientY);
       if (afterElement == null) {
-        todoList.appendChild(li);
-      } else if (afterElement !== li) {
+        if (todoList.lastElementChild !== li) todoList.appendChild(li);
+      } else if (afterElement !== li && afterElement.previousElementSibling !== li) {
         todoList.insertBefore(li, afterElement);
       }
     };
 
-    const cleanup = () => {
-      handle.removeEventListener('pointermove', onMove);
-      handle.removeEventListener('pointerup', onUp);
-      handle.removeEventListener('pointercancel', onUp);
-      window.removeEventListener('pointerup', windowFallback);
-      window.removeEventListener('pointercancel', windowFallback);
-    };
+    const onUp = (ev) => {
+      if (ev && ev.pointerId !== undefined && ev.pointerId !== pointerId) return;
 
-    const onUp = () => {
-      cleanup();
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+
       li.classList.remove('dragging');
       document.body.classList.remove('dragging-active');
+
       const taskIdOrderArray = Array.from(todoList.querySelectorAll('.todo-item')).map(el => el.dataset.id);
       window.TaskRepository.reorderTasks(selectedDate, taskIdOrderArray);
       refreshAfterDataChange();
     };
 
-    // 캡처가 예기치 않게 풀려 handle 쪽 pointerup이 안 잡히는 경우를 대비한 안전망
-    const windowFallback = () => onUp();
-
-    handle.addEventListener('pointermove', onMove);
-    handle.addEventListener('pointerup', onUp);
-    handle.addEventListener('pointercancel', onUp);
-    window.addEventListener('pointerup', windowFallback);
-    window.addEventListener('pointercancel', windowFallback);
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
   });
 }
 
