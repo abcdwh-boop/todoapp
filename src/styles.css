@@ -848,11 +848,11 @@ body.dark-theme .todo-memo-textarea, body:not(.light-theme) .todo-memo-textarea 
 .app-container {
   padding-top: calc(18px + env(safe-area-inset-top));
   padding-bottom: calc(18px + env(safe-area-inset-bottom));
-  height: var(--app-height, 100dvh);
+  height: 100dvh;
 }
 
 body {
-  height: var(--app-height, 100dvh);
+  height: 100dvh;
 }
 
 /* 터치 기기: hover가 없으므로 액션 버튼 항상 표시 */
@@ -880,7 +880,6 @@ body {
 .fullscreen-view {
   position: fixed;
   inset: 0;
-  height: var(--app-height, 100dvh);
   background: var(--bg-color);
   z-index: 500;
   display: none;
