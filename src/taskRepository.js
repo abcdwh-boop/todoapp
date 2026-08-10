@@ -1,3 +1,12 @@
+/*!
+ * TodoMemo - 나의 투두리스트 메모장
+ * Copyright (c) 2026 Kimwonhee. All rights reserved.
+ *
+ * 이 앱은 무료로 자유롭게 공유·재배포할 수 있습니다.
+ * 단, 원본을 수정하거나 개작하여 배포할 수 없으며, 상업적 이용을 금지합니다.
+ * 재배포 시 제작자(Kimwonhee)와 출처를 반드시 표시해 주세요.
+ */
+
 class TaskRepository {
   constructor() {
     this.data = {

@@ -1,3 +1,12 @@
+/*!
+ * TodoMemo - 나의 투두리스트 메모장
+ * Copyright (c) 2026 Kimwonhee. All rights reserved.
+ *
+ * 이 앱은 무료로 자유롭게 공유·재배포할 수 있습니다.
+ * 단, 원본을 수정하거나 개작하여 배포할 수 없으며, 상업적 이용을 금지합니다.
+ * 재배포 시 제작자(Kimwonhee)와 출처를 반드시 표시해 주세요.
+ */
+
 /* ==========================================================================
    TodoMemo 통합 앱 로직 (모바일/데스크톱 웹 공용)
    - 기존 3개 창(메인/큰달력/설정) 구조를 1페이지 3뷰로 통합
@@ -50,12 +59,6 @@ const radioThemeLight = document.getElementById('theme-light');
 const checkboxAutoSave = document.getElementById('autosave-checkbox');
 const radioInsertBottom = document.getElementById('insert-bottom');
 const radioInsertTop = document.getElementById('insert-top');
-const radioUsageTeacher = document.getElementById('use-teacher');
-const radioUsageStudent = document.getElementById('use-student');
-const radioUsageHome = document.getElementById('use-home');
-const inputManagerName = document.getElementById('manager-name');
-const inputManagerContact = document.getElementById('manager-contact');
-const warningBox = document.getElementById('warning-box');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
 const exportDataBtn = document.getElementById('export-data-btn');
 const importDataBtn = document.getElementById('import-data-btn');
@@ -94,6 +97,16 @@ document.addEventListener('click', (e) => {
     closeActiveDropdown();
   }
 });
+
+// ---------- 실제 가시 화면 높이 계산 (dvh 미지원 브라우저 대응) ----------
+// 일부 안드로이드 브라우저는 dvh 단위를 몰라 100vh(주소창 뒤 영역 포함)로 동작해
+// 하단 버튼이 화면 밖으로 밀리는 문제가 생김. 실제 보이는 높이를 직접 재서 사용.
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
 
 // ---------- 초기 기동 ----------
 window.addEventListener('DOMContentLoaded', async () => {
@@ -711,39 +724,17 @@ function loadSettingsForm() {
 
   if ((settings.insertPosition || 'bottom') === 'top') radioInsertTop.checked = true;
   else radioInsertBottom.checked = true;
-
-  if (settings.usageType === 'class-student') radioUsageStudent.checked = true;
-  else if (settings.usageType === 'home-homework') radioUsageHome.checked = true;
-  else radioUsageTeacher.checked = true;
-
-  inputManagerName.value = settings.managerName || '';
-  inputManagerContact.value = settings.managerContact || '';
-
-  toggleWarningBox(settings.usageType);
 }
-
-function toggleWarningBox(usageType) {
-  warningBox.style.display =
-    (usageType === 'class-student' || usageType === 'home-homework') ? 'block' : 'none';
-}
-
-document.querySelectorAll('input[name="usage-type"]').forEach((radio) => {
-  radio.addEventListener('change', () => toggleWarningBox(radio.value));
-});
 
 saveSettingsBtn.addEventListener('click', () => {
   const theme = (document.querySelector('input[name="theme-type"]:checked') || {}).value || 'dark';
   const autoSave = checkboxAutoSave.checked;
   const insertPosition = (document.querySelector('input[name="insert-position"]:checked') || {}).value || 'bottom';
-  const usageType = (document.querySelector('input[name="usage-type"]:checked') || {}).value || 'teacher-only';
 
   window.TaskRepository.updateSettings({
     theme,
     autoSave,
-    insertPosition,
-    usageType,
-    managerName: inputManagerName.value.trim(),
-    managerContact: inputManagerContact.value.trim()
+    insertPosition
   });
 
   applyTheme();
