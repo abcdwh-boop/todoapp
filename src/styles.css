@@ -1376,3 +1376,154 @@ body.dragging-active {
   overflow: hidden;
   touch-action: none;
 }
+
+/* ---------- 반복 일정 패널 ---------- */
+.repeat-toggle-btn.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.repeat-panel {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+
+.repeat-panel.open {
+  display: flex;
+}
+
+.repeat-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.repeat-panel-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.repeat-scope {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.repeat-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.repeat-day input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.repeat-day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 0;
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.repeat-day.sun { color: #ef4444; }
+.repeat-day.sat { color: #3b82f6; }
+
+.repeat-day:hover {
+  border-color: var(--primary-color);
+}
+
+.repeat-day:has(input:checked) {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.repeat-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.repeat-preset-btn {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  border-radius: 50px;
+  padding: 5px 12px;
+  font-family: var(--font-family);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.repeat-preset-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.repeat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.repeat-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-color);
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  color: var(--text-main);
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.repeat-input:focus {
+  border-color: var(--primary-color);
+}
+
+.repeat-add-btn {
+  flex: 0 0 auto;
+  background: var(--primary-color);
+  border: none;
+  color: #fff;
+  border-radius: 9px;
+  padding: 10px 20px;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.repeat-add-btn:hover {
+  background: var(--primary-hover);
+}
+
+.repeat-past-label {
+  align-self: flex-start;
+}

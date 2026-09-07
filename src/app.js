@@ -49,6 +49,16 @@ const largeCalTodayBtn = document.getElementById('large-cal-today-btn');
 const daysGrid = document.getElementById('days-grid');
 const togglePassedX = document.getElementById('toggle-passed-x');
 
+// 반복 일정 패널 DOM
+const repeatToggleBtn = document.getElementById('repeat-toggle-btn');
+const repeatPanel = document.getElementById('repeat-panel');
+const repeatScope = document.getElementById('repeat-scope');
+const repeatInput = document.getElementById('repeat-input');
+const repeatAddBtn = document.getElementById('repeat-add-btn');
+const repeatIncludePast = document.getElementById('repeat-include-past');
+const repeatDayInputs = document.querySelectorAll('#repeat-days input[type="checkbox"]');
+const repeatPresetBtns = document.querySelectorAll('.repeat-preset-btn');
+
 // 설정 뷰 DOM
 const settingsView = document.getElementById('settings-view');
 const settingsBackBtn = document.getElementById('settings-back-btn');
@@ -75,6 +85,7 @@ let isSmallCalOpen = false;
 let activeDropdown = null;
 let largeCalYear = 0;
 let largeCalMonth = 0;
+let isRepeatPanelOpen = false;
 
 // ---------- 유틸 ----------
 let toastTimer = null;
@@ -583,10 +594,14 @@ openLargeCalBtn.addEventListener('click', () => {
   const settings = window.TaskRepository.getSettings();
   togglePassedX.checked = !!settings.showPassedXLargeCal;
   renderLargeCalendar();
+  resetRepeatForm();
+  closeRepeatPanel();
+  updateRepeatScope();
   largeCalView.classList.add('active');
 });
 
 largeCalBackBtn.addEventListener('click', () => {
+  closeRepeatPanel();
   largeCalView.classList.remove('active');
 });
 
@@ -654,12 +669,14 @@ prevMonthBtn.addEventListener('click', () => {
   if (largeCalMonth === 0) { largeCalMonth = 11; largeCalYear--; }
   else { largeCalMonth--; }
   renderLargeCalendar();
+  updateRepeatScope();
 });
 
 nextMonthBtn.addEventListener('click', () => {
   if (largeCalMonth === 11) { largeCalMonth = 0; largeCalYear++; }
   else { largeCalMonth++; }
   renderLargeCalendar();
+  updateRepeatScope();
 });
 
 largeCalTodayBtn.addEventListener('click', () => {
@@ -667,6 +684,130 @@ largeCalTodayBtn.addEventListener('click', () => {
   largeCalYear = today.getFullYear();
   largeCalMonth = today.getMonth();
   renderLargeCalendar();
+  updateRepeatScope();
+});
+
+// ==========================================================================
+// 반복 일정 (표시 중인 달에 요일별로 일괄 추가)
+//  - 규칙을 저장하지 않는 일회성 삽입 방식
+//  - 추가된 뒤에는 일반 할 일과 완전히 동일하게 수정/삭제/이동 가능
+// ==========================================================================
+function updateRepeatScope() {
+  repeatScope.textContent = `${largeCalYear}년 ${largeCalMonth + 1}월에 추가됩니다`;
+}
+
+function openRepeatPanel() {
+  isRepeatPanelOpen = true;
+  repeatPanel.classList.add('open');
+  repeatToggleBtn.classList.add('active');
+  updateRepeatScope();
+  repeatInput.focus();
+}
+
+function closeRepeatPanel() {
+  isRepeatPanelOpen = false;
+  repeatPanel.classList.remove('open');
+  repeatToggleBtn.classList.remove('active');
+}
+
+function resetRepeatForm() {
+  repeatInput.value = '';
+  repeatDayInputs.forEach((cb) => { cb.checked = false; });
+  repeatIncludePast.checked = false;
+}
+
+repeatToggleBtn.addEventListener('click', () => {
+  if (isRepeatPanelOpen) closeRepeatPanel();
+  else openRepeatPanel();
+});
+
+repeatPresetBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const preset = btn.dataset.preset;
+    repeatDayInputs.forEach((cb) => {
+      const day = Number(cb.value);
+      if (preset === 'all') cb.checked = true;
+      else if (preset === 'weekday') cb.checked = day >= 1 && day <= 5;
+      else cb.checked = false;
+    });
+  });
+});
+
+function applyRepeatTasks() {
+  const text = repeatInput.value.trim();
+  const selectedDays = Array.from(repeatDayInputs)
+    .filter((cb) => cb.checked)
+    .map((cb) => Number(cb.value));
+
+  if (selectedDays.length === 0) {
+    showToast('반복할 요일을 하나 이상 선택해 주세요.');
+    return;
+  }
+  if (!text) {
+    showToast('반복할 할 일 내용을 입력해 주세요.');
+    repeatInput.focus();
+    return;
+  }
+
+  const todayStr = window.CalendarService.formatDate(new Date());
+  const includePast = repeatIncludePast.checked;
+  const lastDay = new Date(largeCalYear, largeCalMonth + 1, 0).getDate();
+
+  let added = 0;
+  let duplicated = 0;
+  let skippedPast = 0;
+
+  for (let day = 1; day <= lastDay; day++) {
+    const date = new Date(largeCalYear, largeCalMonth, day);
+    if (!selectedDays.includes(date.getDay())) continue;
+
+    const dateStr = window.CalendarService.formatDate(date);
+
+    // 지난 날짜는 기본적으로 건너뜀
+    if (!includePast && dateStr < todayStr) {
+      skippedPast++;
+      continue;
+    }
+
+    // 같은 날짜에 같은 내용이 이미 있으면 중복 추가하지 않음
+    const exists = window.TaskRepository.getTasksByDate(dateStr)
+      .some((t) => t.text.trim() === text);
+    if (exists) {
+      duplicated++;
+      continue;
+    }
+
+    window.TaskRepository.addTask(dateStr, text);
+    added++;
+  }
+
+  // 자동 저장이 꺼져 있어도 일괄 추가 결과는 잃지 않도록 즉시 저장
+  window.TaskRepository.saveTasksInternal();
+
+  if (added === 0) {
+    if (duplicated > 0) showToast('선택한 날짜에 이미 모두 등록되어 있습니다.');
+    else if (skippedPast > 0) showToast('추가할 날짜가 없습니다. (지난 날짜만 해당됨)');
+    else showToast('이 달에는 해당하는 요일이 없습니다.');
+    return;
+  }
+
+  let message = `${added}개 날짜에 추가했습니다.`;
+  if (duplicated > 0) message += ` (${duplicated}개는 이미 있어 건너뜀)`;
+  if (skippedPast > 0) message += ` (지난 날짜 ${skippedPast}개 제외)`;
+  showToast(message);
+
+  resetRepeatForm();
+  closeRepeatPanel();
+  refreshAfterDataChange();
+}
+
+repeatAddBtn.addEventListener('click', applyRepeatTasks);
+
+repeatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    applyRepeatTasks();
+  }
 });
 
 // ==========================================================================
@@ -761,7 +902,7 @@ exportDataBtn.addEventListener('click', () => {
   const a = document.createElement('a');
   const todayStr = window.CalendarService.formatDate(new Date());
   a.href = url;
-  a.download = `todomemo_backup_${todayStr}.json`;
+  a.download = `오늘할일_backup_${todayStr}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

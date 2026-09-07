@@ -377,7 +377,7 @@ class TaskRepository {
       return { success: false, message: '올바른 JSON 형식의 파일이 아닙니다.' };
     }
     if (!parsed || typeof parsed !== 'object' || typeof parsed.tasksByDate !== 'object') {
-      return { success: false, message: 'TodoMemo 백업 파일 형식이 아닙니다.' };
+      return { success: false, message: '오늘할일 백업 파일 형식이 아닙니다.' };
     }
     this.data = parsed;
     if (!this.data.settings) {

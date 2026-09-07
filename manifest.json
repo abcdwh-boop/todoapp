@@ -1,7 +1,7 @@
 {
-  "name": "TodoMemo - 나의 투두리스트 메모장",
-  "short_name": "TodoMemo",
-  "description": "날짜별 할 일을 기록하는 로컬 저장 투두리스트 메모장",
+  "name": "오늘할일",
+  "short_name": "오늘할일",
+  "description": "날짜별 할 일을 기록하는 로컬 저장 메모장",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
